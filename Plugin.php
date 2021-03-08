@@ -1,12 +1,12 @@
 <?php
 if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 /**
- * WxFans 一款公众号涨粉插件，支持动态验证码
+ * WxFans
  * <div class="wxFansSet"><a style="width:fit-content" id="wxfans">版本检测中..</div>&nbsp;</div><style>.wxFansSet{margin-top: 5px;}.wxFansSet a{background: #ff5a8f;padding: 5px;color: #fff;}</style>
- * <script>var wxfversion="1.0.0";function update_detec(){var container=document.getElementById("wxfans");if(!container){return}var ajax=new XMLHttpRequest();container.style.display="block";ajax.open("get","https://api.github.com/repos/gogobody/WxFans/releases/latest");ajax.send();ajax.onreadystatechange=function(){if(ajax.readyState===4&&ajax.status===200){var obj=JSON.parse(ajax.responseText);var newest=obj.tag_name;if(newest>wxfversion){container.innerHTML="发现新主题版本："+obj.name+'。下载地址：<a href="'+obj.zipball_url+'">点击下载</a>'+"<br>您目前的版本:"+String(wxfversion)+"。"+'<a target="_blank" href="'+obj.html_url+'">👉查看新版亮点</a>'}else{container.innerHTML="您目前的版本:"+String(wxfversion)+"。"+"您目前使用的是最新版主题。"}}}};update_detec();</script>
+ * <script>var wxfversion="1.0.1";function update_detec(){var container=document.getElementById("wxfans");if(!container){return}var ajax=new XMLHttpRequest();container.style.display="block";ajax.open("get","https://api.github.com/repos/gogobody/WxFans/releases/latest");ajax.send();ajax.onreadystatechange=function(){if(ajax.readyState===4&&ajax.status===200){var obj=JSON.parse(ajax.responseText);var newest=obj.tag_name;if(newest>wxfversion){container.innerHTML="发现新主题版本："+obj.name+'。下载地址：<a href="'+obj.zipball_url+'">点击下载</a>'+"<br>您目前的版本:"+String(wxfversion)+"。"+'<a target="_blank" href="'+obj.html_url+'">👉查看新版亮点</a>'}else{container.innerHTML="您目前的版本:"+String(wxfversion)+"。"+"您目前使用的是最新版主题。"}}}};update_detec();</script>
  * @package WxFans 一款公众号涨粉插件，支持动态验证码
  * @author <a href="https://www.ijkxs.com">即刻学术<br> gogobody</a>
- * @version 1.0.0
+ * @version 1.0.1
  * @link https://www.ijkxs.com
  */
 
@@ -16,7 +16,7 @@ define('CNWPER_WEIXIN_COOKIE_NAME', 'cnwper_weixin_secret_code');
 class WxFans_Plugin implements Typecho_Plugin_Interface
 {
 
-    // 默认加密首尾标签对
+    // 默认加密首尾标签对 // 不要修改
     protected static $pluginNodeStart = '<!--wxfans start-->';
     protected static $pluginNodeEnd = '<!--wxfans end-->';
 
@@ -30,6 +30,8 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
     public static function activate()
     {
         Typecho_Plugin::factory('Widget_Abstract_Contents')->contentEx = array(__CLASS__, 'cnwper_weixin_secret');
+        Typecho_Plugin::factory('Widget_Abstract_Contents')->excerptEx = array(__CLASS__, 'excerptEx');
+
         Typecho_Plugin::factory('admin/write-post.php')->bottom = array(__CLASS__, 'render');
         Typecho_Plugin::factory('admin/write-page.php')->bottom = array(__CLASS__, 'render');
     }
@@ -76,6 +78,14 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
      */
     public static function config(Typecho_Widget_Helper_Form $form)
     {
+        ?>
+        <div>
+            <h4>WxFan插件由即刻学术开发</h4>
+            <div>
+                <a href="https://github.com/gogobody/WxFans">点我查看使用说明</a>
+            </div>
+        </div>
+        <?php
         /** 分类名称 */
         $switch = new Typecho_Widget_Helper_Form_Element_Radio('switch', array(
             true => '开启',
@@ -106,6 +116,14 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
         $cache_filename->setAttribute('disabled',true);
         $form->addInput($cache_filename);
 
+        $code_type = new Typecho_Widget_Helper_Form_Element_Radio('code_type', array(
+            'easy' => '简单数字',
+            'hard' => '数字加字母'
+        ), 'easy', _t('验证码难度'),'');
+        $form->addInput($code_type);
+
+        $code_len = new Typecho_Widget_Helper_Form_Element_Text('code_len',null, 4, _t('验证码长度'),'');
+        $form->addInput($code_len);
 //        'cache_storage' => '',  // 默认为file，先保留选项，后期扩展。也可以考虑SESSION        'cache_filename' => "cnwper_wx_caches.data",
 
     }
@@ -131,6 +149,7 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
     {
     }
 
+
     /**
      * 插件实现方法
      *
@@ -155,7 +174,10 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
                 '{{ CNWPER_WEIXIN_TPL_WEIXIN_REPLY_KEYWORD }}',
                 '{{ CNWPER_WEIXIN_TPL_WEIXIN_REPLY_TEMPLATE }}',
                 '{{ CNWPER_WEIXIN_TPL_HOME_URL }}',
-                '{{ CNWPER_WEIXIN_TPL_COOKIE_NAME }}'
+                '{{ CNWPER_WEIXIN_TPL_COOKIE_NAME }}',
+                '{{ CNWPER_WEIXIN_TPL_CODE_TYPE }}',
+                '{{ CNWPER_WEIXIN_TPL_CODE_LEN }}'
+
             );
             $replace = array(
                 $cnwper_weixin_options['token'],
@@ -165,7 +187,9 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
                 $cnwper_weixin_options['replay_keyword'],
                 $cnwper_weixin_options['replay_template'],
                 $options->siteUrl, // need recheck
-                CNWPER_WEIXIN_COOKIE_NAME
+                CNWPER_WEIXIN_COOKIE_NAME,
+                $cnwper_weixin_options['code_type'],
+                $cnwper_weixin_options['code_len']
             );
             // 用正则去替换模板源文件中的变量符号{$varname}, 改用 简单的 str替换 就能满足需求
             $res = str_replace($search, $replace, $tpl_content);
@@ -179,6 +203,26 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
         }
     }
 
+    /**
+     * 自动输出摘要
+     * @access public
+     * @return string
+     */
+    public static function excerptEx($html, $widget, $lastResult){
+        $TePassRule='/'.self::$pluginNodeStart.'([\s\S]*?)'.self::$pluginNodeEnd.'/i';
+        preg_match_all($TePassRule, $html, $hide_words);
+        if(!$hide_words[0]){
+            $TePassRule='/&lt;!--wxfans start--&gt;([\s\S]*?)&lt;!--wxfans end--&gt;/i';
+        }
+        $html=trim($html);
+        if (preg_match_all($TePassRule, $html, $hide_words)){
+            $html = str_replace($hide_words[0], '', $html);
+        }
+        $html=Typecho_Common::subStr(strip_tags($html), 0, 140, "...");
+        return $html;
+    }
+
+
     public static function cnwper_weixin_secret($content)
     {
         $options = Helper::options();
@@ -190,7 +234,7 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
 
 //        <link rel="stylesheet" id="pure_css-css"  href="https://cdn.jsdelivr.net/npm/css-mint@2.0.7/build/css-mint.min.css?ver=0.0.1" type="text/css"/>
 
-        if (preg_match_all('/<!--wxfans start-->([\s\S]*?)<!--wxfans end-->/i', $content, $secret_content)) {
+        if (preg_match_all('/'.self::$pluginNodeStart.'([\s\S]*?)'.self::$pluginNodeEnd.'/i', $content, $secret_content)) {
             $cnwper_weixin_cookie = md5($cnwper_weixin_options->token . CNWPER_WEIXIN_COOKIE_NAME . 'cnwper.com');
             $_cnwper_weixin_cookie = isset($_COOKIE[CNWPER_WEIXIN_COOKIE_NAME]) ? $_COOKIE[CNWPER_WEIXIN_COOKIE_NAME] : '';
             if ($_cnwper_weixin_cookie != $cnwper_weixin_cookie) {
@@ -219,16 +263,15 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
                 <script>
                     $("#check_secret_view").click(function () {
                         var captcha = $("#captcha_input").val()
-                        if (captcha.length !== 6) alert("验证码位数不对")
                         var ajax_data = {
                             captcha: captcha
                         };
                         $.post("' . Typecho_Common::url($cnwper_weixin_options->api_filename . '.php?cnwper=check_captcha',$options->siteUrl) . '", ajax_data, function (c) {
                             c = $.trim(c);
-                            if (c !== "400") {
+                            if (c === "200") {
                                 location.reload();
                             } else {
-                                alert("您的验证码错误，请重新申请");
+                                alert("您的验证码错误");
                             }
                         });
                     });

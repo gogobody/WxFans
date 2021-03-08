@@ -12,6 +12,8 @@ define("CNWPER_WEIXIN_TPL_WEIXIN_REPLY_KEYWORD", "{{ CNWPER_WEIXIN_TPL_WEIXIN_RE
 define("CNWPER_WEIXIN_TPL_WEIXIN_REPLY_TEMPLATE", "{{ CNWPER_WEIXIN_TPL_WEIXIN_REPLY_TEMPLATE }}");
 define("CNWPER_WEIXIN_TPL_HOME_URL", "{{ CNWPER_WEIXIN_TPL_HOME_URL }}");
 define('CNWPER_WEIXIN_TPL_COOKIE_NAME', "{{ CNWPER_WEIXIN_TPL_COOKIE_NAME }}");
+define('CNWPER_WEIXIN_TPL_CODE_TYPE', "{{ CNWPER_WEIXIN_TPL_CODE_TYPE }}");
+define('CNWPER_WEIXIN_TPL_CODE_LEN', "{{ CNWPER_WEIXIN_TPL_CODE_LEN }}");
 
 
 $wechatObj = new WxApi();
@@ -19,7 +21,7 @@ $wechatObj = new WxApi();
 // 是否需要校验安全白名单设置
 if(!isset($_GET["echostr"])){
     if (isset($_GET["cnwper"]) && $_GET['cnwper'] === 'check_captcha') {
-        if (isset($_POST["captcha"]) && strlen(trim($_POST["captcha"]))===6) {
+        if (isset($_POST["captcha"]) && strlen(trim($_POST["captcha"]))===CNWPER_WEIXIN_TPL_CODE_LEN) {
             $captcha = new CaptchaApi();
             $check = $captcha->check(trim(strip_tags($_POST["captcha"])));
             if ($check) {
@@ -166,19 +168,33 @@ class WxApi
 
 class CaptchaApi
 {
+    // 纯数字
+    public function generate_code($length = 4) {
+        return rand(pow(10,($length-1)), pow(10,$length)-1);
+    }
     public function generate() {
         date_default_timezone_set('Asia/Shanghai');
-        $min = floor(date("i")/2);
-        $day = date("d");
-        $day = ltrim($day,0);
-        $url = CNWPER_WEIXIN_TPL_HOME_URL;
-        $captcha = sha1($min.$url.CNWPER_WEIXIN_TPL_TOKEN);
-        $captcha = substr($captcha , $day , 6);
-        if ($this->cache($captcha)) {
-            return $captcha;
-        } else {
-            return FALSE;
+        if (CNWPER_WEIXIN_TPL_CODE_TYPE == 'easy'){
+            $captcha = $this->generate_code(CNWPER_WEIXIN_TPL_CODE_LEN);
+            if ($this->cache($captcha)) {
+                return $captcha;
+            } else {
+                return FALSE;
+            }
+        }else{
+            $min = floor(date("i")/2);
+            $day = date("d");
+            $day = ltrim($day,0);
+            $url = CNWPER_WEIXIN_TPL_HOME_URL;
+            $captcha = sha1($min.$url.CNWPER_WEIXIN_TPL_TOKEN);
+            $captcha = substr($captcha , $day , CNWPER_WEIXIN_TPL_CODE_LEN);
+            if ($this->cache($captcha)) {
+                return $captcha;
+            } else {
+                return FALSE;
+            }
         }
+
     }
 
     /**
