@@ -214,7 +214,7 @@ class CaptchaApi
      * @return bool
      */
     private function cache($captcha) {
-        $captcha_caches = file_get_contents(join(DIRECTORY_SEPARATOR, [CNWPER_WEIXIN_TPL_CAPTCHA_CACHE_PATH, CNWPER_WEIXIN_TPL_CAPTCHA_CACHE_FILENAME]));
+        $captcha_caches = @file_get_contents(join(DIRECTORY_SEPARATOR, [CNWPER_WEIXIN_TPL_CAPTCHA_CACHE_PATH, CNWPER_WEIXIN_TPL_CAPTCHA_CACHE_FILENAME]));
 
         if ($captcha_caches===False) { $captcha_caches = ""; }// 当结果为False时，表示文件不存在。直接赋值空字符串。
         $captcha_caches = json_decode($captcha_caches, True);  // 以 list 形式取出，当无法解析字符串内容时，返回null

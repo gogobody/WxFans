@@ -95,7 +95,7 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
         $cache_expire = new Typecho_Widget_Helper_Form_Element_Text('cache_expire', null, '2', '验证码有效时间', '单位：分钟，示范：2');
         $form->addInput($cache_expire);
 
-        $api_filename = new Typecho_Widget_Helper_Form_Element_Text('api_filename', null, 'api', '接口文件文件名', '设置生成的公众号接口文件文件名，比如 api：分钟，示范：2');
+        $api_filename = new Typecho_Widget_Helper_Form_Element_Text('api_filename', null, 'api', '接口文件文件名', '设置生成的公众号接口文件文件名，比如 api，不建议修改');
         $form->addInput($api_filename);
 
         $replay_template = new Typecho_Widget_Helper_Form_Element_Text('replay_template', null, '您的验证码为：【%s】，验证码有效期为[%s]分钟，请抓紧使用，过期需重新申请', '验证码回复模版', '以 %s 作为替换符，第一个%s为验证码位置，第二个%s为有效期位置');
@@ -146,7 +146,7 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
 //        if ($cnwper_weixin_options['token']) {
 //            // 对参数进行各种判断，如果有缺漏或者不符合要求的返回失败
 //        }
-            $tpl_content = file_get_contents($options->pluginDir() . '/WxFans/' . CNWPER_WEIXIN_TPL_FILE);
+            $tpl_content = file_get_contents($options->pluginDir('WxFans') . '/WxFans/' . CNWPER_WEIXIN_TPL_FILE);
             $search = array(
                 '{{ CNWPER_WEIXIN_TPL_TOKEN }}',
                 '{{ CNWPER_WEIXIN_TPL_CAPTCHA_CACHE_PATH }}',
