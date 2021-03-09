@@ -29,8 +29,8 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
      */
     public static function activate()
     {
-        Typecho_Plugin::factory('Widget_Abstract_Contents')->contentEx = array(__CLASS__, 'cnwper_weixin_secret');
-        Typecho_Plugin::factory('Widget_Abstract_Contents')->excerptEx = array(__CLASS__, 'excerptEx');
+        Typecho_Plugin::factory('Widget_Abstract_Contents')->contentEx_1001 = array(__CLASS__, 'cnwper_weixin_secret');
+        Typecho_Plugin::factory('Widget_Abstract_Contents')->excerptEx_1001 = array(__CLASS__, 'excerptEx');
 
         Typecho_Plugin::factory('admin/write-post.php')->bottom = array(__CLASS__, 'render');
         Typecho_Plugin::factory('admin/write-page.php')->bottom = array(__CLASS__, 'render');
@@ -209,13 +209,14 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
      * @return string
      */
     public static function excerptEx($html, $widget, $lastResult){
-        $TePassRule='/'.self::$pluginNodeStart.'([\s\S]*?)'.self::$pluginNodeEnd.'/i';
-        preg_match_all($TePassRule, $html, $hide_words);
+        $html = empty( $lastResult ) ? $html : $lastResult;
+        $WxPassRule='/'.self::$pluginNodeStart.'([\s\S]*?)'.self::$pluginNodeEnd.'/i';
+        preg_match_all($WxPassRule, $html, $hide_words);
         if(!$hide_words[0]){
-            $TePassRule='/&lt;!--wxfans start--&gt;([\s\S]*?)&lt;!--wxfans end--&gt;/i';
+            $WxPassRule='/&lt;!--wxfans start--&gt;([\s\S]*?)&lt;!--wxfans end--&gt;/i';
         }
         $html=trim($html);
-        if (preg_match_all($TePassRule, $html, $hide_words)){
+        if (preg_match_all($WxPassRule, $html, $hide_words)){
             $html = str_replace($hide_words[0], '', $html);
         }
         $html=Typecho_Common::subStr(strip_tags($html), 0, 140, "...");
@@ -223,18 +224,22 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
     }
 
 
-    public static function cnwper_weixin_secret($content)
+    public static function cnwper_weixin_secret($content, $widget, $lastResult)
     {
         $options = Helper::options();
         $cnwper_weixin_options = $options->plugin('WxFans');
+        $content = empty( $lastResult ) ? $content : $lastResult;
 
         if (!$cnwper_weixin_options->switch) {
             return $content;
         }
+        $WxPassRule='/'.self::$pluginNodeStart.'([\s\S]*?)'.self::$pluginNodeEnd.'/i';
 
-//        <link rel="stylesheet" id="pure_css-css"  href="https://cdn.jsdelivr.net/npm/css-mint@2.0.7/build/css-mint.min.css?ver=0.0.1" type="text/css"/>
-
-        if (preg_match_all('/'.self::$pluginNodeStart.'([\s\S]*?)'.self::$pluginNodeEnd.'/i', $content, $secret_content)) {
+        preg_match_all($WxPassRule, $content, $secret_content);
+        if(!$secret_content[0]){
+            $WxPassRule='/&lt;!--wxfans start--&gt;([\s\S]*?)&lt;!--wxfans end--&gt;/i';
+        }
+        if (preg_match_all($WxPassRule, $content, $secret_content)) {
             $cnwper_weixin_cookie = md5($cnwper_weixin_options->token . CNWPER_WEIXIN_COOKIE_NAME . 'cnwper.com');
             $_cnwper_weixin_cookie = isset($_COOKIE[CNWPER_WEIXIN_COOKIE_NAME]) ? $_COOKIE[CNWPER_WEIXIN_COOKIE_NAME] : '';
             if ($_cnwper_weixin_cookie != $cnwper_weixin_cookie) {
