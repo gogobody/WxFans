@@ -3,10 +3,10 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 /**
  * WxFans
  * <div class="wxFansSet"><a style="width:fit-content" id="wxfans">版本检测中..</div>&nbsp;</div><style>.wxFansSet{margin-top: 5px;}.wxFansSet a{background: #ff5a8f;padding: 5px;color: #fff;}</style>
- * <script>var wxfversion="1.0.1";function update_detec(){var container=document.getElementById("wxfans");if(!container){return}var ajax=new XMLHttpRequest();container.style.display="block";ajax.open("get","https://api.github.com/repos/gogobody/WxFans/releases/latest");ajax.send();ajax.onreadystatechange=function(){if(ajax.readyState===4&&ajax.status===200){var obj=JSON.parse(ajax.responseText);var newest=obj.tag_name;if(newest>wxfversion){container.innerHTML="发现新主题版本："+obj.name+'。下载地址：<a href="'+obj.zipball_url+'">点击下载</a>'+"<br>您目前的版本:"+String(wxfversion)+"。"+'<a target="_blank" href="'+obj.html_url+'">👉查看新版亮点</a>'}else{container.innerHTML="您目前的版本:"+String(wxfversion)+"。"+"您目前使用的是最新版主题。"}}}};update_detec();</script>
+ * <script>var wxfversion="1.0.2";function update_detec(){var container=document.getElementById("wxfans");if(!container){return}var ajax=new XMLHttpRequest();container.style.display="block";ajax.open("get","https://api.github.com/repos/gogobody/WxFans/releases/latest");ajax.send();ajax.onreadystatechange=function(){if(ajax.readyState===4&&ajax.status===200){var obj=JSON.parse(ajax.responseText);var newest=obj.tag_name;if(newest>wxfversion){container.innerHTML="发现新主题版本："+obj.name+'。下载地址：<a href="'+obj.zipball_url+'">点击下载</a>'+"<br>您目前的版本:"+String(wxfversion)+"。"+'<a target="_blank" href="'+obj.html_url+'">👉查看新版亮点</a>'}else{container.innerHTML="您目前的版本:"+String(wxfversion)+"。"+"您目前使用的是最新版。"}}}};update_detec();</script>
  * @package WxFans 一款公众号涨粉插件，支持动态验证码
  * @author <a href="https://www.ijkxs.com">即刻学术<br> gogobody</a>
- * @version 1.0.1
+ * @version 1.0.2
  * @link https://www.ijkxs.com
  */
 
@@ -126,6 +126,9 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
         $form->addInput($code_len);
 //        'cache_storage' => '',  // 默认为file，先保留选项，后期扩展。也可以考虑SESSION        'cache_filename' => "cnwper_wx_caches.data",
 
+        $expire = new Typecho_Widget_Helper_Form_Element_Text('expire',null, 31536000, _t('过期时间'),'默认一年（输入秒数）');
+        $form->addInput($expire);
+
     }
 
     /**
@@ -176,7 +179,8 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
                 '{{ CNWPER_WEIXIN_TPL_HOME_URL }}',
                 '{{ CNWPER_WEIXIN_TPL_COOKIE_NAME }}',
                 '{{ CNWPER_WEIXIN_TPL_CODE_TYPE }}',
-                '{{ CNWPER_WEIXIN_TPL_CODE_LEN }}'
+                '{{ CNWPER_WEIXIN_TPL_CODE_LEN }}',
+                '{{ CNWPER_WEIXIN_EXPIRE_TIME }}'
 
             );
             $replace = array(
@@ -189,7 +193,9 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
                 $options->siteUrl, // need recheck
                 CNWPER_WEIXIN_COOKIE_NAME,
                 $cnwper_weixin_options['code_type'],
-                $cnwper_weixin_options['code_len']
+                $cnwper_weixin_options['code_len'],
+                $cnwper_weixin_options['expire']
+
             );
             // 用正则去替换模板源文件中的变量符号{$varname}, 改用 简单的 str替换 就能满足需求
             $res = str_replace($search, $replace, $tpl_content);
@@ -240,7 +246,7 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
             $WxPassRule='/&lt;!--wxfans start--&gt;([\s\S]*?)&lt;!--wxfans end--&gt;/i';
         }
         if (preg_match_all($WxPassRule, $content, $secret_content)) {
-            $cnwper_weixin_cookie = md5($cnwper_weixin_options->token . CNWPER_WEIXIN_COOKIE_NAME . 'cnwper.com');
+            $cnwper_weixin_cookie = md5($cnwper_weixin_options->token . CNWPER_WEIXIN_COOKIE_NAME . 'ijkxs.com');
             $_cnwper_weixin_cookie = isset($_COOKIE[CNWPER_WEIXIN_COOKIE_NAME]) ? $_COOKIE[CNWPER_WEIXIN_COOKIE_NAME] : '';
             if ($_cnwper_weixin_cookie != $cnwper_weixin_cookie) {
                 $secret_notice = '

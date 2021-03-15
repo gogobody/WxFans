@@ -1,6 +1,6 @@
 <?php
 /**
-  * cnwper.com MP Api
+  * ijkxs.com MP Api
   */
 
 //define your token
@@ -14,6 +14,7 @@ define("CNWPER_WEIXIN_TPL_HOME_URL", "{{ CNWPER_WEIXIN_TPL_HOME_URL }}");
 define('CNWPER_WEIXIN_TPL_COOKIE_NAME', "{{ CNWPER_WEIXIN_TPL_COOKIE_NAME }}");
 define('CNWPER_WEIXIN_TPL_CODE_TYPE', "{{ CNWPER_WEIXIN_TPL_CODE_TYPE }}");
 define('CNWPER_WEIXIN_TPL_CODE_LEN', "{{ CNWPER_WEIXIN_TPL_CODE_LEN }}");
+define('CNWPER_WEIXIN_EXPIRE_TIME', "{{ CNWPER_WEIXIN_EXPIRE_TIME }}");
 
 
 $wechatObj = new WxApi();
@@ -21,15 +22,15 @@ $wechatObj = new WxApi();
 // 是否需要校验安全白名单设置
 if(!isset($_GET["echostr"])){
     if (isset($_GET["cnwper"]) && $_GET['cnwper'] === 'check_captcha') {
-        if (isset($_POST["captcha"]) && strlen(trim($_POST["captcha"]))===CNWPER_WEIXIN_TPL_CODE_LEN) {
+        if (isset($_POST["captcha"]) && strlen(trim($_POST["captcha"]))==CNWPER_WEIXIN_TPL_CODE_LEN) {
             $captcha = new CaptchaApi();
             $check = $captcha->check(trim(strip_tags($_POST["captcha"])));
             if ($check) {
                 // 有效期默认设置10年，需要调整修改+之后的数字即可，单位(秒)
                 setcookie(
                     CNWPER_WEIXIN_TPL_COOKIE_NAME,
-                    md5(CNWPER_WEIXIN_TPL_TOKEN . CNWPER_WEIXIN_TPL_COOKIE_NAME . 'cnwper.com'),
-                    time()+86400*365*10,
+                    md5(CNWPER_WEIXIN_TPL_TOKEN . CNWPER_WEIXIN_TPL_COOKIE_NAME . 'ijkxs.com'),
+                    time()+intval(CNWPER_WEIXIN_EXPIRE_TIME),
                     '/'
                 );
                 exit("200");
