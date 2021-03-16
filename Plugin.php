@@ -126,7 +126,7 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
         $form->addInput($code_len);
 //        'cache_storage' => '',  // 默认为file，先保留选项，后期扩展。也可以考虑SESSION        'cache_filename' => "cnwper_wx_caches.data",
 
-        $expire = new Typecho_Widget_Helper_Form_Element_Text('expire',null, 31536000, _t('过期时间'),'默认一年（输入秒数）');
+        $expire = new Typecho_Widget_Helper_Form_Element_Text('expire',null, 525600, _t('过期时间'),'默认一年（输入分钟）');
         $form->addInput($expire);
 
     }

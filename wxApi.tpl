@@ -21,7 +21,7 @@ $wechatObj = new WxApi();
 
 // 是否需要校验安全白名单设置
 if(!isset($_GET["echostr"])){
-    if (isset($_GET["cnwper"]) && $_GET['cnwper'] === 'check_captcha') {
+    if (isset($_GET["cnwper"]) && $_GET['cnwper'] == 'check_captcha') {
         if (isset($_POST["captcha"]) && strlen(trim($_POST["captcha"]))==CNWPER_WEIXIN_TPL_CODE_LEN) {
             $captcha = new CaptchaApi();
             $check = $captcha->check(trim(strip_tags($_POST["captcha"])));
@@ -30,7 +30,7 @@ if(!isset($_GET["echostr"])){
                 setcookie(
                     CNWPER_WEIXIN_TPL_COOKIE_NAME,
                     md5(CNWPER_WEIXIN_TPL_TOKEN . CNWPER_WEIXIN_TPL_COOKIE_NAME . 'ijkxs.com'),
-                    time()+intval(CNWPER_WEIXIN_EXPIRE_TIME),
+                    time()+intval(CNWPER_WEIXIN_EXPIRE_TIME)*60,
                     '/'
                 );
                 exit("200");
@@ -106,6 +106,7 @@ class WxApi
                 $toUsername = $postObj->ToUserName;
                 $msgType = $postObj->MsgType;
                 $keyword = trim($postObj->Content);
+                $event = $postObj->Event;
                 $time = time();
 
                 if(!empty( $keyword ) && $keyword == CNWPER_WEIXIN_TPL_WEIXIN_REPLY_KEYWORD && $msgType == 'text')
@@ -134,7 +135,29 @@ class WxApi
                     echo "success";
                 }
 
-        } else {
+        }elseif ($event=="scancode_push" and $msgType == "event"){
+                $textTpl = "<xml>
+                    <ToUserName><![CDATA[%s]]></ToUserName>
+                    <FromUserName><![CDATA[%s]]></FromUserName>
+                    <CreateTime>%s</CreateTime>
+                    <MsgType><![CDATA[%s]]></MsgType>
+                    <Content><![CDATA[%s]]></Content>
+                </xml>";
+                $msgType = "text";
+
+                $captchaObj = new CaptchaApi();
+                $captcha = $captchaObj->generate();
+                if($captcha){
+                $contentStr = sprintf(CNWPER_WEIXIN_TPL_WEIXIN_REPLY_TEMPLATE, $captcha, CNWPER_WEIXIN_TPL_CAPTCHA_CACHE_EXPIRE/60);
+                } else {
+                $contentStr = '验证码服务生成异常，请联系管理员，谢谢。';
+                }
+
+                $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
+                header("Content-type: application/xml");
+                echo $resultStr;
+                }
+        else {
             echo "";
             exit;
         }

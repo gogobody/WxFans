@@ -41,5 +41,9 @@
 <!--wxfans start-->请输入加密内容<!--wxfans end-->
 ```
 
+
+## 开发者模式
+去微信公众号后台： 开发->基本配置-> 服务器配置填写相关信息，服务器地址为: https://你的网址/api.php，令牌 token 自己设置的记住，填写到插件后台。
+
 ## 欢迎关注我的公众号
 ![](https://www.helloimg.com/images/2021/03/15/BN0qFA.jpg)
