@@ -250,7 +250,7 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
             $_cnwper_weixin_cookie = isset($_COOKIE[CNWPER_WEIXIN_COOKIE_NAME]) ? $_COOKIE[CNWPER_WEIXIN_COOKIE_NAME] : '';
             if ($_cnwper_weixin_cookie != $cnwper_weixin_cookie) {
                 $secret_notice = '
-                <link rel="stylesheet" id="pure_css-css"  href="'.$options->siteUrl.'usr/plugins/WxFans/assets/css/wxfans.min.css" type="text/css"/>
+                <link rel="stylesheet" id="pure_css-css"  href="'.$options->siteUrl.'/usr/plugins/WxFans/assets/css/wxfans.min.css" type="text/css"/>
                 <div class="wxfans">
                     <div class="cm-grid cm-card secret_view">
                         <div class="cm-row">
