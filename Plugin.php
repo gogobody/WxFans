@@ -29,8 +29,8 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
      */
     public static function activate()
     {
-        Typecho_Plugin::factory('Widget_Abstract_Contents')->contentEx_1001 = array(__CLASS__, 'cnwper_weixin_secret');
-        Typecho_Plugin::factory('Widget_Abstract_Contents')->excerptEx_1001 = array(__CLASS__, 'excerptEx');
+        Typecho_Plugin::factory('Widget_Abstract_Contents')->contentEx_600 = array(__CLASS__, 'cnwper_weixin_secret');
+        Typecho_Plugin::factory('Widget_Abstract_Contents')->excerptEx_600 = array(__CLASS__, 'excerptEx');
 
         Typecho_Plugin::factory('admin/write-post.php')->bottom = array(__CLASS__, 'render');
         Typecho_Plugin::factory('admin/write-page.php')->bottom = array(__CLASS__, 'render');
@@ -235,7 +235,6 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
         $options = Helper::options();
         $cnwper_weixin_options = $options->plugin('WxFans');
         $content = empty( $lastResult ) ? $content : $lastResult;
-
         if (!$cnwper_weixin_options->switch) {
             return $content;
         }
