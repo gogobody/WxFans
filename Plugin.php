@@ -6,7 +6,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
  * <script>var wxfversion="1.0.2";function update_detec(){var container=document.getElementById("wxfans");if(!container){return}var ajax=new XMLHttpRequest();container.style.display="block";ajax.open("get","https://api.github.com/repos/gogobody/WxFans/releases/latest");ajax.send();ajax.onreadystatechange=function(){if(ajax.readyState===4&&ajax.status===200){var obj=JSON.parse(ajax.responseText);var newest=obj.tag_name;if(newest>wxfversion){container.innerHTML="发现新主题版本："+obj.name+'。下载地址：<a href="'+obj.zipball_url+'">点击下载</a>'+"<br>您目前的版本:"+String(wxfversion)+"。"+'<a target="_blank" href="'+obj.html_url+'">👉查看新版亮点</a>'}else{container.innerHTML="您目前的版本:"+String(wxfversion)+"。"+"您目前使用的是最新版。"}}}};update_detec();</script>
  * @package WxFans 一款公众号涨粉插件，支持动态验证码
  * @author <a href="https://www.ijkxs.com">即刻学术<br> gogobody</a>
- * @version 1.0.2
+ * @version 1.0.3
  * @link https://www.ijkxs.com
  */
 
@@ -168,7 +168,8 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
 //        if ($cnwper_weixin_options['token']) {
 //            // 对参数进行各种判断，如果有缺漏或者不符合要求的返回失败
 //        }
-            $tpl_content = file_get_contents($options->pluginDir('WxFans') . '/WxFans/' . CNWPER_WEIXIN_TPL_FILE);
+            $file_path = $options->pluginDir('WxFans') . '/' . CNWPER_WEIXIN_TPL_FILE;
+            $tpl_content = file_get_contents($file_path);
             $search = array(
                 '{{ CNWPER_WEIXIN_TPL_TOKEN }}',
                 '{{ CNWPER_WEIXIN_TPL_CAPTCHA_CACHE_PATH }}',
@@ -200,10 +201,15 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
             // 用正则去替换模板源文件中的变量符号{$varname}, 改用 简单的 str替换 就能满足需求
             $res = str_replace($search, $replace, $tpl_content);
             //编译后文件写入某个目录
-            file_put_contents(
+            $dest_path = join(DIRECTORY_SEPARATOR, [$_SERVER['DOCUMENT_ROOT'], $cnwper_weixin_options['api_filename'] . '.php']);
+            $ret=file_put_contents(
                 join(DIRECTORY_SEPARATOR, [$_SERVER['DOCUMENT_ROOT'], $cnwper_weixin_options['api_filename'] . '.php']),
                 $res
             );
+            if ($ret <= 0){
+                echo "写入 $dest_path 失败！";
+                die();
+            }
         } else {
             @unlink(join(DIRECTORY_SEPARATOR, [$_SERVER['DOCUMENT_ROOT'], $cnwper_weixin_options['api_filename'] . '.php']));
         }
@@ -292,11 +298,6 @@ class WxFans_Plugin implements Typecho_Plugin_Interface
         return $content;
     }
 
-    public static function add_button()
-    {
-        $dir = Helper::options()->pluginUrl . '/WxFollowView/editer.js';
-        echo "<script type=\"text/javascript\" src=\"{$dir}\"></script>";
-    }
 
     public static function render()
     {
